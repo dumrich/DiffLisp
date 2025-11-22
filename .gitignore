@@ -1,0 +1,42 @@
+# Common Lisp
+*.fasl
+*.fas
+*.lib
+*.x86f
+*.lx64fsl
+*.lx32fsl
+*.dx64fsl
+*.dx32fsl
+*.FASL
+*.ufasl
+*.pfsl
+*.dfsl
+*.wx64fsl
+*.wx32fsl
+
+# ASDF
+*.asd-link
+
+# Quicklisp
+quicklisp/
+*.qlf
+
+# Editor backups and temporary files
+*~
+*.bak
+\#*\#
+.\#*
+
+# Emacs
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
