@@ -1,10 +1,8 @@
 ;;;; package.lisp
 
+
+(defpackage #:difflisp.tape
+  (:use #:cl))
+
 (defpackage #:difflisp
-  (:use #:cl)
-  (:export #:diff-lambda
-           #:gradient
-           #:diff
-           #:make-variable
-           #:value
-           #:grad))
+    (:use #:cl))
