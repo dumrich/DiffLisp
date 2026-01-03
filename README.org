@@ -1,0 +1,185 @@
+#+TITLE: DiffLisp
+#+DESCRIPTION: An automatically differentiable variant/subset of Lisp implemented in Common Lisp.
+
+An automatically differentiable variant/subset of Lisp implemented in Common Lisp.
+
+DiffLisp provides a framework for automatic differentiation (AD) in Lisp, enabling the computation of derivatives of functions defined in a Lisp-like language. This is particularly useful for machine learning, optimization, and scientific computing applications.
+
+* Features
+- *Automatic Differentiation*: Compute gradients automatically using reverse-mode AD (backpropagation)
+- *Tape-based Implementation*: Efficient computation graph construction and traversal
+- *Native Lisp Integration*: Seamless integration with Common Lisp
+- *Composable*: Build complex differentiable functions from simple primitives
+- *Extensible*: Easy to add new differentiable operators
+
+* Installation
+** Prerequisites
+- A Common Lisp implementation (SBCL, CCL, or similar)
+- Quicklisp (for dependency management)
+
+** Installing Quicklisp
+If you don't have Quicklisp installed:
+
+#+begin_src lisp
+;; Download and load the Quicklisp installer
+(load "http://beta.quicklisp.org/quicklisp.lisp")
+
+;; Install Quicklisp
+(quicklisp-quickstart:install)
+
+;; Add to your Lisp init file to load Quicklisp on startup
+(ql:add-to-init-file)
+#+end_src
+
+** Installing DiffLisp
+Clone this repository to your local Quicklisp projects directory:
+
+#+begin_src bash
+cd ~/quicklisp/local-projects/
+git clone <your-repo-url> difflisp
+#+end_src
+
+Or add a symbolic link:
+
+#+begin_src bash
+ln -s /path/to/DiffLisp ~/quicklisp/local-projects/difflisp
+#+end_src
+
+Then load the system:
+
+#+begin_src lisp
+(ql:quickload :difflisp)
+#+end_src
+
+* Quick Start
+
+#+begin_src lisp
+(in-package :difflisp)
+
+;; Define a simple differentiable function
+;; Example: f(x) = x^2
+(defun square (x)
+  (diff-lambda (x)
+    (* x x)))
+
+;; Compute the gradient at x = 3
+;; df/dx = 2x, so at x=3, gradient = 6
+(let ((x (make-variable 3.0)))
+  (gradient (square x) x))
+#+end_src
+
+* Architecture
+DiffLisp is organized into several modules:
+
+- *package.lisp*: Package definition and exports
+- *tape.lisp*: Tape-based AD infrastructure for recording operations
+- *operators.lisp*: Differentiable primitive operations (+, *, -, /, exp, log, etc.)
+- *diff.lisp*: Core automatic differentiation implementation
+- *core.lisp*: High-level API for users
+
+* Usage Examples
+** Basic Differentiation
+
+#+begin_src lisp
+;; Create variables
+(let ((x (make-variable 2.0))
+      (y (make-variable 3.0)))
+
+  ;; Compute f(x,y) = x^2 + y^2
+  (let ((result (+ (* x x) (* y y))))
+
+    ;; Get gradients
+    (gradient result x)  ; => 4.0 (df/dx = 2x)
+    (gradient result y)  ; => 6.0 (df/dy = 2y)
+    ))
+#+end_src
+
+** Neural Network Example
+
+#+begin_src lisp
+;; Simple linear regression: y = w*x + b
+(defun linear-layer (x w b)
+  (+ (* w x) b))
+
+;; Mean squared error loss
+(defun mse-loss (predicted actual)
+  (let ((diff (- predicted actual)))
+    (* diff diff)))
+
+;; Training step
+(let ((x (make-variable 1.0))
+      (y-true (make-variable 2.0))
+      (w (make-variable 0.5))
+      (b (make-variable 0.0)))
+
+  (let* ((y-pred (linear-layer x w b))
+         (loss (mse-loss y-pred y-true)))
+
+    ;; Compute gradients
+    (values (gradient loss w)
+            (gradient loss b))))
+#+end_src
+
+* API Reference
+** Core Functions
+- ~make-variable (value)~ - Create a differentiable variable
+- ~gradient (expr var)~ - Compute the gradient of expr with respect to var
+- ~diff-lambda (params body)~ - Define a differentiable function
+- ~value (var)~ - Extract the numeric value from a variable
+- ~grad (var)~ - Get the accumulated gradient for a variable
+
+** Differentiable Operators
+The following operators are differentiable:
+
+- *Arithmetic*: ~+~, ~-~, ~*~, ~/~
+- *Exponential*: ~exp~, ~log~
+- *Trigonometric*: ~sin~, ~cos~, ~tan~
+- *Activation functions*: ~relu~, ~sigmoid~, ~tanh~
+
+* Development
+** Running Tests
+
+#+begin_src lisp
+(ql:quickload :difflisp/tests)
+(asdf:test-system :difflisp)
+#+end_src
+
+** Project Structure
+
+#+begin_example
+DiffLisp/
+├── difflisp.asd          # ASDF system definition
+├── README                # This file
+├── src/                  # Source code
+│   ├── package.lisp      # Package definition
+│   ├── tape.lisp         # Tape infrastructure
+│   ├── operators.lisp    # Differentiable operators
+│   ├── diff.lisp         # AD core
+│   └── core.lisp         # API
+├── tests/                # Test suite
+│   └── main.lisp
+└── examples/             # Usage examples
+#+end_example
+
+* Theory
+DiffLisp implements *reverse-mode automatic differentiation* (also known as backpropagation):
+
+1. *Forward Pass*: Compute the function value while recording operations on a tape
+2. *Backward Pass*: Traverse the tape in reverse, computing gradients using the chain rule
+
+This approach is efficient for functions with many inputs and few outputs (common in machine learning).
+
+* Contributing
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+* License
+MIT License
+
+* References
+- [[https://en.wikipedia.org/wiki/Automatic_differentiation][Automatic Differentiation]]
+- [[https://en.wikipedia.org/wiki/Backpropagation][Backpropagation]]
+- [[https://asdf.common-lisp.dev/][ASDF Manual]]
+- [[https://www.quicklisp.org/][Quicklisp]]
+
+* Acknowledgments
+Inspired by various AD frameworks including PyTorch, JAX, and other differentiable programming systems.
