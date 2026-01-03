@@ -69,64 +69,11 @@ Then load the system:
 #+end_src
 
 * Architecture
-DiffLisp is organized into several modules:
+DiffLisp implements a small (but growing) subset of Common Lisp.
 
-- *package.lisp*: Package definition and exports
-- *tape.lisp*: Tape-based AD infrastructure for recording operations
-- *operators.lisp*: Differentiable primitive operations (+, *, -, /, exp, log, etc.)
-- *diff.lisp*: Core automatic differentiation implementation
-- *core.lisp*: High-level API for users
+- Data Type: Double-precision floats (double-float) only. No complex numbers or matrices yet.
 
-* Usage Examples
-** Basic Differentiation
-
-#+begin_src lisp
-;; Create variables
-(let ((x (make-variable 2.0))
-      (y (make-variable 3.0)))
-
-  ;; Compute f(x,y) = x^2 + y^2
-  (let ((result (+ (* x x) (* y y))))
-
-    ;; Get gradients
-    (gradient result x)  ; => 4.0 (df/dx = 2x)
-    (gradient result y)  ; => 6.0 (df/dy = 2y)
-    ))
-#+end_src
-
-** Neural Network Example
-
-#+begin_src lisp
-;; Simple linear regression: y = w*x + b
-(defun linear-layer (x w b)
-  (+ (* w x) b))
-
-;; Mean squared error loss
-(defun mse-loss (predicted actual)
-  (let ((diff (- predicted actual)))
-    (* diff diff)))
-
-;; Training step
-(let ((x (make-variable 1.0))
-      (y-true (make-variable 2.0))
-      (w (make-variable 0.5))
-      (b (make-variable 0.0)))
-
-  (let* ((y-pred (linear-layer x w b))
-         (loss (mse-loss y-pred y-true)))
-
-    ;; Compute gradients
-    (values (gradient loss w)
-            (gradient loss b))))
-#+end_src
-
-* API Reference
-** Core Functions
-- ~make-variable (value)~ - Create a differentiable variable
-- ~gradient (expr var)~ - Compute the gradient of expr with respect to var
-- ~diff-lambda (params body)~ - Define a differentiable function
-- ~value (var)~ - Extract the numeric value from a variable
-- ~grad (var)~ - Get the accumulated gradient for a variable
+- Control Flow: Straight-line code only (no if or loops yet; we rely on host Lisp for that).
 
 ** Differentiable Operators
 The following operators are differentiable:
@@ -135,6 +82,31 @@ The following operators are differentiable:
 - *Exponential*: ~exp~, ~log~
 - *Trigonometric*: ~sin~, ~cos~, ~tan~
 - *Activation functions*: ~relu~, ~sigmoid~, ~tanh~
+
+* Usage Examples
+** Basic Differentiation
+
+#+begin_src lisp
+  (defun square (x)
+    (* x x))
+
+  ;; Usage
+  (let ((grad-fn (grad #'square))) 
+    (funcall grad-fn 3.0)) 
+  ;; Returns: 6.0
+
+
+  ;; Partial Derivatives
+  (defun f (x y)
+  (+ (* x x) 
+     (* x y)))
+
+  ;; Differentiate wrt argument index 1 (y)
+  (let ((df-dy (grad #'f :argnums 1)))
+  ;; x=3.0, y=4.0
+    (funcall df-dy 3.0 4.0)) 
+  ;; Returns: 3.0 (since df/dy = x)
+#+end_src
 
 * Development
 ** Running Tests
