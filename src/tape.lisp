@@ -4,10 +4,8 @@
 (in-package #:difflisp.tape)
 
 ;; Implementation plan:
-;; Tape Struct
-;; - Stack of operations (struct)
-;; - Private Methods:
-;;   - (add-to-tape operation)
+;; Tape Variable
+;; - Stack of operations
 ;; Operation Struct
 ;; - Stores a list of input Values
 ;; - Stores an output Value
@@ -16,16 +14,40 @@
 ;; - Stores double-float value (initialized to zero)
 ;; - Stores double-float gradient (initialized to 0.0)
 
-;; Generic value
-(defstruct (value
-            (:print-function print-variable))
-    (val 0.0)
+;; Generic dual-number
+(defstruct (dnumber
+            (:print-function print-dnumber))
+    (value 0.0)
     (grad 0.0))
 
-(defun print-variable (v stream depth)
+(defun print-dnumber (d stream depth)
   (declare (ignore depth))
-  (format stream "#<VAR val:~5,2f grad:~5,2f>"
-          (variable-val v)
-          (variable-grad v)))
+  (format stream "#<DNUM val:~5,2f grad:~5,2f>"
+          (dnumber-value v)
+          (dnumber-grad v)))
 
+;; Operation struct
+(defstruct (operation
+            (:print-function print-operation))
+  (input '())
+  (output nil)
+  (closure nil :type (or function null)))
 
+(defun print-operation (o stream depth)
+  (declare (ignore depth))
+  (format stream "#<OP input:~a output:~a closure:~s>"
+          (operation-input o)
+          (operation-output o)
+          (operation-closure o)))
+
+(defparameter *tape* (make-array 1000
+                                 :element-type 'operation
+                                 :adjustable t
+                                 :fill-pointer 0))
+
+;; Reset tape. Called on every (grad)
+(defun reset-tape ()
+  (setf (fill-pointer *tape*) 0))
+
+(defun push-to-tape (op)
+  (vector-push-extend op *tape*))
