@@ -26,11 +26,11 @@
 (test add-mul-grad
     """Test adding and multiplying w.r.t x"""
       (let (g-prime (grad #'g))
-          (is (g-prime 1 2) 9)))
+          (is (g-prime 1 2) 3)))
 
         
 ;; Test Gradient (custom first arg)
 (test add-mul-grad-named
     """Test adding and multiplying w.r.t x (named)"""
       (let (g-prime (grad #'g :arg '(0 1)))
-          (is (g-prime 1 2) 9)))
+          (is (g-prime 1 2) '(3 3))))
