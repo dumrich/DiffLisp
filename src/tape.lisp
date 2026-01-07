@@ -29,8 +29,6 @@
 ;; Operation struct
 (defstruct (operation
             (:print-function print-operation))
-  (input '())
-  (output nil)
   (closure nil :type (or function null)))
 
 (defun print-operation (o stream depth)
