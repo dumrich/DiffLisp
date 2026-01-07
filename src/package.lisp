@@ -7,8 +7,8 @@
 
 (defpackage #:difflisp.ops
   (:use #:cl #:difflisp.tape)
-  (:shadow #:* #:+)
-  (:export #:* #:+))
+  (:shadow #:* #:+ #:- #:/)
+  (:export #:* #:+ #:- #:/))
   
 
 (defpackage #:difflisp
