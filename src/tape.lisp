@@ -16,9 +16,14 @@
 
 ;; Generic dual-number
 (defstruct (dnumber
+            (:constructor %make-dnumber)
             (:print-function print-dnumber))
     (value 0.0)
     (grad 0.0))
+
+(defun make-dnumber (&key (value 0.0d0) (grad 0.0d0))
+  (%make-dnumber :value (coerce value 'double-float)
+                 :grad (coerce grad 'double-float)))
 
 (defun print-dnumber (d stream depth)
   (declare (ignore depth))
