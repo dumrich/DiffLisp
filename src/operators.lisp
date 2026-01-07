@@ -6,45 +6,57 @@
 ;; Placeholder for differentiable operator definitions
 
 ;; Differentiable + operator operating on `dnumber` types
-(defun + (&rest params)
-  "Summation of a variable number of parameters with autograd"
-  ;; Push operator struct to 
-  (let ((sum (make-dnumber :value 0.0 :grad 0.0))
-        (inputs '()))
-    (loop for param in params
-          do
-             (if (dnumber-p param)
-                 (push param inputs)
-                 (push (make-dnumber :value param :grad 0.0) inputs))
-          (setf (dnumber-value sum) (cl:+ (dnumber-value sum) (dnumber-value (car inputs)))))
-    
-    ;; Make operator
-    (let ((op (make-operation :input inputs :output sum
-                              :closure (lambda (parent inputs) (dnumber-grad parent)))))
-        (push-to-tape op))
-                    
-    sum))
-  
-(defun * (&rest params)
-  "Product of a variable number of parameters with autograd"
-  (let ((product (make-dnumber :value 1.0 :grad 0.0))
-        (inputs '()))
-    (loop for param in params
-          do
-             (if (dnumber-p param)
-                 (push param inputs)
-                 (push (make-dnumber :value param :grad 0.0) inputs))
-             (setf (dnumber-value product) (cl:* (dnumber-value product) (dnumber-value (car inputs)))))
-          
-    ;; Make operator
-    (let ((op (make-operation :input inputs :output sum
-                              :closure
-                              (lambda (parent inputs)
-                                (cl:* (apply #'cl:* inputs) (dnumber-grad parent))))))
-      (push-to-tape op))
-    product))
-    
+(defgeneric + (a b)
+  (:documentation "Summation of 2 params with autograd"))
 
+(defmethod + ((a dnumber) (b dnumber))
+  (let* ((a-val (dnumber-value a))
+         (b-val (dnumber-value b))
+         (output (make-dnumber :value (cl:+ a-val b-val))))
+    (let ((back-fn (lambda ()
+                     (let ((out-grad (dnumber-grad output)))
+                       (incf (dnumber-grad a) out-grad)
+                       (incf (dnumber-grad b) out-grad)))))
+      (push-to-tape (make-operation :closure back-fn)))
+    output))
+      
+  
+(defmethod + ((a number) (b dnumber))
+  (let ((a-dnum (make-dnumber :value a)))
+    (+ a-dnum b)))
+  
+(defmethod + ((a dnumber) (b number))
+  (let ((b-dnum (make-dnumber :value b)))
+    (+ a b-dnum)))
+
+(defmethod + ((a number) (b number))
+  (cl:+ a b))
+  
+;; Multiplication
+(defgeneric * (a b)
+  (:documentation "Product of 2 params with autograd"))
+
+(defmethod * ((a dnumber) (b dnumber))
+  (let* ((a-val (dnumber-value a))
+         (b-val (dnumber-value b))
+         (output (make-dnumber :value (cl:* a-val b-val))))
+    (let ((back-fn (lambda ()
+                     (let ((out-grad (dnumber-grad output)))
+                       (incf (dnumber-grad a) (cl:* out-grad b-val))
+                       (incf (dnumber-grad b) (cl:* out-grad a-val))))))
+      (push-to-tape (make-operation :closure back-fn)))
+    output))
+
+(defmethod * ((a number) (b dnumber))
+  (let ((a-dnum (make-dnumber :value a)))
+    (* a-dnum b)))
+
+(defmethod * ((a dnumber) (b number))
+  (let ((b-dnum (make-dnumber :value b)))
+    (* a b-dnum)))
+
+(defmethod * ((a number) (b number))
+    (cl:* a b))
     
 
           
