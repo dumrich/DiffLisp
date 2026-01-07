@@ -12,4 +12,4 @@
   
 
 (defpackage #:difflisp
-    (:use #:cl #:difflisp.tape #:difflisp.tape))
+    (:use #:cl #:difflisp.tape #:difflisp.ops))
