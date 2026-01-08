@@ -54,3 +54,6 @@
 
 (defun push-to-tape (op)
   (vector-push-extend op *tape*))
+
+(defun pop-from-tape ()
+  (vector-pop *tape*))
