@@ -28,8 +28,8 @@
 (defun print-dnumber (d stream depth)
   (declare (ignore depth))
   (format stream "#<DNUM val:~5,2f grad:~5,2f>"
-          (dnumber-value v)
-          (dnumber-grad v)))
+          (dnumber-value d)
+          (dnumber-grad d)))
 
 ;; Operation struct
 (defstruct (operation
