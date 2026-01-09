@@ -134,3 +134,37 @@
       (binary-div (make-dnumber :value 1.0) first)
       ;; Case: N-ary Division
       (reduce #'binary-div others :initial-value first)))
+
+;; Sin, Cos
+(defgeneric sin (x)
+  (:documentation "Compute the sin of a value in radians"))
+
+(defmethod sin ((dnumber x))
+  (let* ((x-val (dnumber-value x))
+         (output (make-dnumber :value (cl:sin x-val))))
+    (let ((back-fn (lambda ()
+                     (let ((output-grad (dnumber-grad output)))
+                       (incf (dnumber-grad x) (* output_grad (cl:cos x-val))))))))
+    (push-to-tape (make-operation :closure back-fn)))
+  output)
+                       
+(defmethod sin ((number x))
+  (cl:sin x))
+
+(defgeneric cos (x)
+  (:documentation "Compute the cos of a value in radians"))
+
+(defmethod cos ((dnumber x))
+  (let* ((x-val (dnumber-value x))
+         (output (make-dnumber :value (cl:cos x-val))))
+    (let ((back-fn (lambda ()
+                     (let ((output-grad (dnumber-grad output)))
+                       (incf (dnumber-grad x) (* -1.0d0 output_grad (cl:cos x-val))))))))
+    (push-to-tape (make-operation :closure back-fn)))
+  output)
+                       
+(defmethod cos ((number x))
+  (cl:cos x))
+  
+;; exp, log, max, min, sqrt
+;; Sigmoid, Tahn, Relu
