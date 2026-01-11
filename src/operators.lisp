@@ -22,11 +22,11 @@
       
   
 (defmethod binary-add ((a number) (b dnumber))
-  (let ((a-dnum (make-dnumber :value a)))
+  (let ((a-dnum (make-dnumber :value (coerce a 'double-float))))
     (binary-add a-dnum b)))
-  
+
 (defmethod binary-add ((a dnumber) (b number))
-  (let ((b-dnum (make-dnumber :value b)))
+  (let ((b-dnum (make-dnumber :value (coerce b 'double-float))))
     (binary-add a b-dnum)))
 
 (defmethod binary-add ((a number) (b number))
@@ -34,7 +34,7 @@
 
 (defun + (&rest args)
   (if (null args)
-      (make-dnumber :value 0.0)
+      (make-dnumber :value 0.0d0)
       (reduce #'binary-add args)))
   
 ;; Multiplication
@@ -53,11 +53,11 @@
     output))
 
 (defmethod binary-mul ((a number) (b dnumber))
-  (let ((a-dnum (make-dnumber :value a)))
+  (let ((a-dnum (make-dnumber :value (coerce a 'double-float))))
     (binary-mul a-dnum b)))
 
 (defmethod binary-mul ((a dnumber) (b number))
-  (let ((b-dnum (make-dnumber :value b)))
+  (let ((b-dnum (make-dnumber :value (coerce b 'double-float))))
     (binary-mul a b-dnum)))
 
 (defmethod binary-mul ((a number) (b number))
@@ -65,7 +65,7 @@
 
 (defun * (&rest args)
   (if (null args)
-      (make-dnumber :value 1.0)
+      (make-dnumber :value 1.0d0)
       (reduce #'binary-mul args)))
 
 ;; Subtraction
@@ -84,10 +84,10 @@
     output))
 
 (defmethod binary-sub ((a number) (b dnumber))
-  (binary-sub (make-dnumber :value a) b))
+  (binary-sub (make-dnumber :value (coerce a 'double-float)) b))
 
 (defmethod binary-sub ((a dnumber) (b number))
-  (binary-sub a (make-dnumber :value b)))
+  (binary-sub a (make-dnumber :value (coerce b 'double-float))))
 
 (defmethod binary-sub ((a number) (b number))
   (cl:- a b))
@@ -95,7 +95,7 @@
 (defun - (first &rest others)
   (if (null others)
       ;; Case: Unary Negation (- x) -> (0 - x)
-      (binary-sub (make-dnumber :value 0.0) first)
+      (binary-sub (make-dnumber :value 0.0d0) first)
       ;; Case: N-ary Subtraction
       (reduce #'binary-sub others :initial-value first)))
     
@@ -120,10 +120,10 @@
     output))
 
 (defmethod binary-div ((a number) (b dnumber))
-  (binary-div (make-dnumber :value a) b))
+  (binary-div (make-dnumber :value (coerce a 'double-float)) b))
 
 (defmethod binary-div ((a dnumber) (b number))
-  (binary-div a (make-dnumber :value b)))
+  (binary-div a (make-dnumber :value (coerce b 'double-float))))
 
 (defmethod binary-div ((a number) (b number))
   (cl:/ a b))
@@ -131,7 +131,7 @@
 (defun / (first &rest others)
   (if (null others)
       ;; Case: Reciprocal (/ x) -> (1 / x)
-      (binary-div (make-dnumber :value 1.0) first)
+      (binary-div (make-dnumber :value 1.0d0) first)
       ;; Case: N-ary Division
       (reduce #'binary-div others :initial-value first)))
 
@@ -139,32 +139,34 @@
 (defgeneric sin (x)
   (:documentation "Compute the sin of a value in radians"))
 
-(defmethod sin ((dnumber x))
+(defmethod sin ((x dnumber))
   (let* ((x-val (dnumber-value x))
          (output (make-dnumber :value (cl:sin x-val))))
     (let ((back-fn (lambda ()
                      (let ((output-grad (dnumber-grad output)))
-                       (incf (dnumber-grad x) (* output_grad (cl:cos x-val))))))))
-    (push-to-tape (make-operation :closure back-fn)))
-  output)
+                       (incf (dnumber-grad x) (cl:* output-grad (cl:cos x-val)))))))
+      (push-to-tape (make-operation :closure back-fn)))
+    output))
                        
-(defmethod sin ((number x))
+(defmethod sin ((x number))
   (cl:sin x))
 
 (defgeneric cos (x)
   (:documentation "Compute the cos of a value in radians"))
 
-(defmethod cos ((dnumber x))
+(defmethod cos ((x dnumber))
   (let* ((x-val (dnumber-value x))
          (output (make-dnumber :value (cl:cos x-val))))
     (let ((back-fn (lambda ()
                      (let ((output-grad (dnumber-grad output)))
-                       (incf (dnumber-grad x) (* -1.0d0 output_grad (cl:cos x-val))))))))
-    (push-to-tape (make-operation :closure back-fn)))
-  output)
+                       (incf (dnumber-grad x) (cl:* -1.0d0 output-grad (cl:sin x-val)))))))
+      (push-to-tape (make-operation :closure back-fn)))
+    output))
                        
-(defmethod cos ((number x))
+(defmethod cos ((x number))
   (cl:cos x))
-  
+
+;; Tensor Operations
+
 ;; exp, log, max, min, sqrt
 ;; Sigmoid, Tahn, Relu

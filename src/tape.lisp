@@ -15,32 +15,21 @@
 ;; - Stores double-float gradient (initialized to 0.0)
 
 ;; Generic dual-number
-(defstruct (dnumber
-            (:constructor %make-dnumber)
-            (:print-function print-dnumber))
-    (value 0.0)
-    (grad 0.0))
+(defstruct dnumber
+  (value 0.0d0 :type double-float)
+  (grad 0.0d0 :type double-float))
 
-(defun make-dnumber (&key (value 0.0d0) (grad 0.0d0))
-  (%make-dnumber :value (coerce value 'double-float)
-                 :grad (coerce grad 'double-float)))
-
-(defun print-dnumber (d stream depth)
-  (declare (ignore depth))
+(defmethod print-object ((d dnumber) stream)
   (format stream "#<DNUM val:~5,2f grad:~5,2f>"
           (dnumber-value d)
           (dnumber-grad d)))
 
 ;; Operation struct
-(defstruct (operation
-            (:print-function print-operation))
+(defstruct operation
   (closure nil :type (or function null)))
 
-(defun print-operation (o stream depth)
-  (declare (ignore depth))
-  (format stream "#<OP input:~a output:~a closure:~s>"
-          (operation-input o)
-          (operation-output o)
+(defmethod print-object ((o operation) stream)
+  (format stream "#<OP closure:~s>"
           (operation-closure o)))
 
 (defparameter *tape* (make-array 1000
@@ -57,3 +46,6 @@
 
 (defun pop-from-tape ()
   (vector-pop *tape*))
+
+(defun tape-size ()
+  (fill-pointer *tape*))
